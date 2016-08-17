@@ -12,36 +12,25 @@ Module Module1
             Console.WriteLine("Sky Editor Plugin Packer v" & Assembly.GetExecutingAssembly.GetName.Version.ToString(3))
             Console.WriteLine()
 
-            'Todo: create info.skyext with relevant info (possibly grabbed using reflection)
-            'Todo: if info.skyext exists, update relevant info (like extension type)
-            'Todo: zip the directory, including info.skyext
+            Dim a = Assembly.ReflectionOnlyLoadFrom(args(1))
+            Dim assemblyName = a.GetName
 
-            Throw New NotImplementedException
+            'Create info.skyext with relevant info (possibly grabbed using reflection)
+            Dim info As ExtensionInfo
+            Dim infoPath As String = Path.Combine(Path.GetDirectoryName(args(1)), "info.skyext")
+            If File.Exists(infoPath) Then
+                info = Json.DeserializeFromFile(Of ExtensionInfo)(infoPath)
+            Else
+                info = New ExtensionInfo
+            End If
 
-            ''Scrap this
-            'Using manager As New PluginManager
-            '    Dim core As New PluginPackPluginCore(args(1))
-            '    Console.WriteLine("Loading core...")
-            '    manager.LoadCore(core).Wait()
+            'Set/update relevant info (like extension type)
+            info.ExtensionTypeName = GetType(PluginExtensionType).AssemblyQualifiedName
+            info.Name = assemblyName.Name
+            info.Version = assemblyName.Version.ToString(4)
 
-            '    Console.WriteLine("Setting up...")
-            '    Dim dependant = core.DependantPlugin
-            '    Dim a = dependant.GetType.Assembly
-            '    Dim info As New ExtensionInfo
-            '    info.Name = dependant.PluginName
-            '    'Todo: set description
-            '    info.Author = dependant.PluginAuthor
-            '    info.Version = a.GetName.Version.ToString(3)
-
-            '    If Not Directory.Exists(Path.GetDirectoryName(args(2))) Then
-            '        Directory.CreateDirectory(Path.GetDirectoryName(args(2)))
-            '    End If
-
-            '    Console.WriteLine("Packing plugin...")
-            '    RedistributionHelpers.PackPlugins({dependant}, args(2), info, manager).Wait()
-
-            '    Console.WriteLine("Done!")
-            'End Using
+            'Zip the directory, including info.skyext
+            Utilities.Zip.Zip(Path.GetDirectoryName(args(1)), args(2))
         Else
             Console.WriteLine("Usage: SkyEditor-PluginPacker.exe <AssemblyPath> <TargetZipPath>")
             Environment.Exit(1)
