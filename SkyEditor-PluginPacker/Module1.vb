@@ -29,6 +29,9 @@ Module Module1
             info.Name = assemblyName.Name
             info.Version = assemblyName.Version.ToString(4)
 
+            'Save the extension info
+            Json.SerializeToFile(Path.Combine(Path.GetDirectoryName(args(1)), "info.skyext"), info)
+
             'Zip the directory, including info.skyext
             Utilities.Zip.Zip(Path.GetDirectoryName(args(1)), args(2))
         Else
